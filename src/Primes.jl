@@ -219,7 +219,7 @@ isprime(n::Int128) = n < 2 ? false :
 #     http://maths-people.anu.edu.au/~brent/pub/pub051.html
 #
 """
-    factor(n) -> Dict
+    factor(n::Integer) -> Dict
 
 Compute the prime factorization of an integer `n`. Returns a dictionary. The
 keys of the dictionary correspond to the factors, and hence are of the same type as `n`.
@@ -232,11 +232,35 @@ Dict{Int64,Int64} with 2 entries:
   2 => 2
   5 => 2
 ```
+
+For convenience, a negative number `n` is factored as `-1*(-n)` (i.e. `-1` is considered
+to be a factor), and `0` is factored as `0^1`:
+
+```jldoctest
+julia> factor(-9) # == -1*3^2
+Dict{Int64,Int64} with 2 entries:
+  -1 => 1
+   3 => 2
+
+julia> factor(0)
+Dict{Int64,Int64} with 1 entries:
+  0 => 1
+```
 """
 function factor{T<:Integer,K<:Integer}(n::T, h::Associative{K,Int}=Dict{T,Int}())
-    0 < n || throw(ArgumentError("number to be factored must be > 0, got $n"))
-    n == 1 && return h
-    isprime(n) && (h[n] = 1; return h)
+    if n < 0
+        h[-1] = 1
+        return factor(-n, h)
+    elseif n == 0
+        h[0] = 1
+        return h
+    elseif n == 1
+        return h
+    elseif isprime(n)
+        h[n] = 1
+        return h
+    end
+
     local p::T
     for p in PRIMES
         if n % p == 0
@@ -254,7 +278,7 @@ function factor{T<:Integer,K<:Integer}(n::T, h::Associative{K,Int}=Dict{T,Int}()
 end
 
 """
-    factor(ContainerType, n) -> ContainerType
+    factor(ContainerType, n::Integer) -> ContainerType
 
 Return the factorization of `n` using ContainerType
 (a subtype of `Associative` or `AbstractArray`).

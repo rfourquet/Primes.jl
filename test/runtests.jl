@@ -207,7 +207,6 @@ euler7(n) = primes(floor(Int,n*log(n*log(n))))[n]
 
 # factor(Vector, n)
 for V in (Vector, Vector{Int}, Vector{Int128})
-    @test_throws ArgumentError factor(V, 0)
     @test factor(V, 1) == Int[]
     @test factor(V, 3) == [3]
     @test factor(V, 4) == [2,2]
@@ -215,3 +214,8 @@ end
 
 # factor with non-default associative containers
 @test factor(SortedDict, 100) == factor(Dict, 100)
+
+# factor non-positive numbers:
+@test factor(0) == Dict(0=>1)
+@test factor(-1) == Dict(-1=>1)
+@test factor(-9) == Dict(-1=>1, 3=>2)
